@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:padding="5dp"
+    tools:context=".ActivityMain">
+
+    <TextView
+        android:id="@+id/textViewSerialList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="可用串口"
+        app:layout_constraintBottom_toBottomOf="@id/editBaudRate"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editBaudRate" />
+
+    <Spinner
+        android:id="@+id/spinnerSerialPort"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@id/textViewSerialList"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewBaudRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="波特率"
+        app:layout_constraintBottom_toBottomOf="@id/editBaudRate"
+        app:layout_constraintLeft_toRightOf="@id/spinnerSerialPort"
+        app:layout_constraintTop_toTopOf="@id/editBaudRate" />
+
+    <EditText
+        android:id="@+id/editBaudRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="9600"
+        app:layout_constraintLeft_toRightOf="@id/textViewBaudRate"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/switchOpenClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="串口开关"
+        android:textOff="关"
+        android:textOn="开"
+        app:layout_constraintBottom_toBottomOf="@id/editBaudRate"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editBaudRate"
+        app:showText="true" />
+
+    <TextView
+        android:id="@+id/textViewSendMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="间隔毫秒："
+        app:layout_constraintBottom_toBottomOf="@id/editTextDelay"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editTextDelay" />
+
+    <EditText
+        android:id="@+id/editTextDelay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1000"
+        app:layout_constraintLeft_toRightOf="@id/textViewSendMsg"
+        app:layout_constraintTop_toBottomOf="@id/editBaudRate" />
+
+    <TextView
+        android:id="@+id/textViewRepeat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="次数："
+        app:layout_constraintLeft_toRightOf="@id/editTextDelay"
+        app:layout_constraintTop_toTopOf="@id/textViewSendMsg" />
+
+    <EditText
+        android:id="@+id/editTextSendTimes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10"
+        app:layout_constraintLeft_toRightOf="@id/textViewRepeat"
+        app:layout_constraintTop_toTopOf="@id/editTextDelay" />
+
+    <Switch
+        android:id="@+id/switchSend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="循环发送"
+        android:textOff="停"
+        android:textOn="发"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editTextDelay"
+        app:showText="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送内容"
+        app:layout_constraintBottom_toBottomOf="@id/checkboxHex"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/checkboxHex" />
+
+    <CheckBox
+        android:id="@+id/checkboxHex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="HEX"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editTextDelay" />
+
+    <EditText
+        android:id="@+id/editTextSendMsg"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="010203A1B2C30D0A"
+        app:layout_constraintLeft_toLeftOf="@id/textViewSendMsg"
+        app:layout_constraintRight_toLeftOf="@id/checkboxFrameBySend"
+        app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
+
+    <CheckBox
+        android:id="@+id/checkboxFrameBySend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="按发送验证接收帧"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
+
+    <TextView
+        android:id="@+id/textViewReceive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="接收字节数/帧："
+        app:layout_constraintBottom_toBottomOf="@id/imageButtonClear"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imageButtonClear" />
+
+    <TextView
+        android:id="@+id/textViewReceiveCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        app:layout_constraintLeft_toRightOf="@id/textViewReceive"
+        app:layout_constraintTop_toTopOf="@id/textViewReceive" />
+
+    <TextView
+        android:id="@+id/textViewReceiveCountMatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:text="0"
+        app:layout_constraintLeft_toRightOf="@id/textViewReceiveCount"
+        app:layout_constraintTop_toTopOf="@id/textViewReceiveCount" />
+
+    <ImageButton
+        android:id="@+id/imageButtonClear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_delete"
+        app:layout_constraintLeft_toRightOf="@id/textViewReceiveCountMatch"
+        app:layout_constraintRight_toLeftOf="@id/checkboxReceiveHex"
+        app:layout_constraintTop_toBottomOf="@id/editTextSendMsg" />
+
+    <CheckBox
+        android:id="@+id/checkboxReceiveHex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="HEX"
+        app:layout_constraintBottom_toBottomOf="@id/imageButtonClear"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imageButtonClear" />
+
+    <TextView
+        android:id="@+id/textViewReceiveMessage"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageButtonClear" />
+</androidx.constraintlayout.widget.ConstraintLayout>

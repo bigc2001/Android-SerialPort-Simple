@@ -92,15 +92,15 @@ public final class SerialPort {
     }
 
     public void makeAccessible(boolean readable, boolean writeable) {
-        this.makeAccessible(readable, writeable, null);
+        this.makeAccessible(device.getAbsolutePath(), readable, writeable, null);
     }
 
-    public void makeAccessible(boolean readable, boolean writeable, String suPath) {
+    public void makeAccessible(String devPath, boolean readable, boolean writeable, String suPath) {
         String cmd = null;
         if (writeable && !device.canWrite()) {
-            cmd = "chmod 666 " + device.getAbsolutePath() + "\n" + "exit\n";
+            cmd = "chmod 666 " + devPath + "\n" + "exit\n";
         } else if (readable && !device.canRead()) {
-            cmd = "chmod 664 " + device.getAbsolutePath() + "\n" + "exit\n";
+            cmd = "chmod 664 " + devPath + "\n" + "exit\n";
         }
         if (cmd == null) return;
         String ePath = suPath;
