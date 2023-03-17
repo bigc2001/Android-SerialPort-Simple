@@ -57,8 +57,7 @@ public final class SerialPort {
      * @param stopBits 停止位；默认1；1:1位停止位；2:2位停止位
      * @param flags    默认0
      */
-    public SerialPort(@NonNull File device, int baudRate, int dataBits, int parity, int stopBits,
-                      int flags) throws SecurityException {
+    public SerialPort(@NonNull File device, int baudRate, int dataBits, int parity, int stopBits, int flags) {
         this.device = device;
         this.baudRate = baudRate;
         this.dataBits = dataBits;
@@ -73,7 +72,7 @@ public final class SerialPort {
      * @param device   串口设备文件
      * @param baudRate 波特率
      */
-    public SerialPort(@NonNull File device, int baudRate) throws SecurityException {
+    public SerialPort(@NonNull File device, int baudRate) {
         this(device, baudRate, 8, 0, 1, 0);
     }
 
@@ -86,8 +85,7 @@ public final class SerialPort {
      * @param parity   奇偶校验；0:无校验位(NONE，默认)；1:奇校验位(ODD);2:偶校验位(EVEN)
      * @param stopBits 停止位；默认1；1:1位停止位；2:2位停止位
      */
-    public SerialPort(@NonNull File device, int baudRate, int dataBits, int parity, int stopBits)
-            throws SecurityException {
+    public SerialPort(@NonNull File device, int baudRate, int dataBits, int parity, int stopBits) {
         this(device, baudRate, dataBits, parity, stopBits, 0);
     }
 
