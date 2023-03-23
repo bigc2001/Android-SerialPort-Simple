@@ -121,15 +121,6 @@
         android:layout_height="wrap_content"
         android:text="010203A1B2C30D0A"
         app:layout_constraintLeft_toLeftOf="@id/textViewSendMsg"
-        app:layout_constraintRight_toLeftOf="@id/checkboxFrameBySend"
-        app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
-
-    <CheckBox
-        android:id="@+id/checkboxFrameBySend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="true"
-        android:text="按发送验证接收帧"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
 
@@ -178,10 +169,62 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@id/imageButtonClear" />
 
+    <RadioGroup
+        android:id="@+id/radioGroupCheckReceive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageButtonClear">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="不验证" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="按发送帧" />
+
+        <RadioButton
+            android:id="@+id/radioBeginEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="按首尾字节:" />
+    </RadioGroup>
+
+
+    <EditText
+        android:id="@+id/editTextHexHead"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="@id/radioGroupCheckReceive"
+        app:layout_constraintLeft_toRightOf="@id/radioGroupCheckReceive"
+        app:layout_constraintTop_toTopOf="@id/radioGroupCheckReceive" />
+
+    <TextView
+        android:id="@+id/textViewHexEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="结尾:"
+        app:layout_constraintBottom_toBottomOf="@id/editTextHexHead"
+        app:layout_constraintLeft_toRightOf="@id/editTextHexHead"
+        app:layout_constraintTop_toTopOf="@id/editTextHexHead" />
+
+    <EditText
+        android:id="@+id/editTextHexEnd"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:text="0D0A"
+        app:layout_constraintLeft_toRightOf="@id/textViewHexEnd"
+        app:layout_constraintTop_toTopOf="@id/editTextHexHead" />
+
     <TextView
         android:id="@+id/textViewReceiveMessage"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageButtonClear" />
+        app:layout_constraintTop_toBottomOf="@id/radioGroupCheckReceive" />
 </androidx.constraintlayout.widget.ConstraintLayout>

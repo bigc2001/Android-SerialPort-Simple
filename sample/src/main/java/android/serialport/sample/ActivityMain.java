@@ -19,7 +19,10 @@ package android.serialport.sample;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,13 +30,15 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.SwitchCompat;
-
 import com.google.common.io.BaseEncoding;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +50,12 @@ public class ActivityMain extends Activity {
     private Spinner spinnerSerialPort;
     private TtyAdapter<TtyFile> adapter;
     private TextView textViewReceive, textViewReceiveCount, textViewReceiveCountMatch, textViewReceiveMessage;
-    private EditText editTextDelay, editTextSendTimes, editTextSendMsg;
+    private EditText editTextDelay, editTextSendTimes, editTextSendMsg, editTextHexHead, editTextHexEnd;
     private Switch switchOpenClose;
     private Switch switchSend;
-    private CheckBox checkboxHex, checkboxReceiveHex, checkboxFrameBySend;
+    private CheckBox checkboxHex, checkboxReceiveHex;
+
+    private RadioGroup radioGroupCheckReceive;
 
     private ImageButton imageButtonClear;
     private SerialSample serialSample;
@@ -71,9 +78,11 @@ public class ActivityMain extends Activity {
         this.editTextSendMsg = this.findViewById(R.id.editTextSendMsg);
         this.checkboxHex = this.findViewById(R.id.checkboxHex);
         this.checkboxReceiveHex = this.findViewById(R.id.checkboxReceiveHex);
-        this.checkboxFrameBySend = this.findViewById(R.id.checkboxFrameBySend);
         this.switchOpenClose = this.findViewById(R.id.switchOpenClose);
         this.switchSend = this.findViewById(R.id.switchSend);
+        this.radioGroupCheckReceive = this.findViewById(R.id.radioGroupCheckReceive);
+        this.editTextHexHead = this.findViewById(R.id.editTextHexHead);
+        this.editTextHexEnd = this.findViewById(R.id.editTextHexEnd);
 
         ((Switch) this.findViewById(R.id.switchOpenClose)).setOnCheckedChangeListener((compoundButton, b) -> {
             if (b) {
@@ -81,7 +90,8 @@ public class ActivityMain extends Activity {
                 Spinner pathSpinner = (Spinner) findViewById(R.id.spinnerSerialPort);
                 String path = ((TextView) pathSpinner.getSelectedView()).getText().toString();
                 String br = ((EditText) findViewById(R.id.editBaudRate)).getText().toString();
-                Log.d(TAG, "准备打开串口：" + path + ":" + br);
+                prepareBeginEndByte();
+                Log.d(TAG, "打开串口：" + path + ":" + br);
                 try {
                     if (serialSample == null) serialSample = new SerialSample();
                     serialSample.open(new File(path), Integer.parseInt(br), (code, obj) -> {
@@ -120,6 +130,7 @@ public class ActivityMain extends Activity {
                                 break;
                             }
                         }
+                        Log.d(TAG, "写入字节：" + BaseEncoding.base16().encode(rb));
                         try {
                             serialSample.write(rb);
                         } catch (IOException e) {
@@ -132,13 +143,30 @@ public class ActivityMain extends Activity {
                 });
                 writeThread.start();
             } else {
-
+                writeThread.interrupt();
+                writeThread = null;
             }
         });
         this.imageButtonClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mHandler.obtainMessage(7).sendToTarget();
+                mHandler.obtainMessage(8).sendToTarget();
+            }
+        });
+        this.editTextHexHead.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (((RadioButton) radioGroupCheckReceive.getChildAt(2)).isChecked()) {
+                    switchOpenClose.setChecked(false);
+                }
             }
         });
     }
@@ -151,45 +179,148 @@ public class ActivityMain extends Activity {
 
     private byte[] sendBytes = null;
     private int totalReceiveCount = 0, totalMatch = 0;
-    private int matchIndex = -1;
+    private int matchedLength = -1;
 
     private void resetBufferedReceive() {
         this.sendBytes = null;
         this.totalReceiveCount = 0;
-        this.matchIndex = -1;
+        this.matchedLength = -1;
         this.totalMatch = 0;
+        this.readBufferArray.clear();
+        this.headBs = null;
+        this.endBs = null;
+        this.headSize = 0;
     }
 
     private void countReadBytes(byte[] readBs) {
-        String receiveTxt = null;
-        if (checkboxFrameBySend.isChecked()) {
-            if (this.sendBytes == null) parseSendBytes();
-            int lineSize = this.sendBytes.length;
-            for (byte b : readBs) {
-                if (matchIndex == -1) {
-                    if (b == sendBytes[0]) matchIndex = 1;
-                } else if (b == sendBytes[matchIndex]) {
-                    matchIndex++;
-                    if (matchIndex == lineSize) {
-                        Log.d(TAG, "完帧");
-                        totalMatch++;
-                        receiveTxt = BaseEncoding.base16().encode(sendBytes);
-                        matchIndex = -1;
+        Log.d(TAG, "收到字节：" + BaseEncoding.base16().encode(readBs));
+        if (((RadioButton) this.radioGroupCheckReceive.getChildAt(0)).isChecked()) {
+            String directBsString;
+            if (checkboxReceiveHex.isChecked()) directBsString = BaseEncoding.base16().encode(readBs);
+            else directBsString = new String(readBs);
+            onReceiveOnFrameBs(directBsString);
+        } else if (((RadioButton) this.radioGroupCheckReceive.getChildAt(1)).isChecked()) {
+            this.checkBySendBytes(readBs);
+        } else if (((RadioButton) this.radioGroupCheckReceive.getChildAt(2)).isChecked()) {
+            this.checkByBeginEnd(readBs);
+        }
+        //字节累计数
+        totalReceiveCount += readBs.length;
+        this.mHandler.obtainMessage(6, totalReceiveCount).sendToTarget();
+    }
+
+    private void checkBySendBytes(byte[] readBs) {
+        if (this.sendBytes == null) parseSendBytes();
+        int lineSize = this.sendBytes.length;
+        for (byte b : readBs) {
+            if (matchedLength == -1) {
+                if (b == sendBytes[0]) matchedLength = 1;
+            } else if (b == sendBytes[matchedLength]) {
+                matchedLength++;
+                if (matchedLength == lineSize) {
+                    Log.d(TAG, "完帧");
+                    matchedLength = -1;
+                    onReceiveOnFrameBs(BaseEncoding.base16().encode(sendBytes));
+                }
+            } else {
+                matchedLength = -1;
+            }
+        }
+    }
+
+    private void onReceiveOnFrameBs(String bsString) {
+        //Log.d(TAG, "一帧：" + receiveTxt);
+        totalMatch++;
+        this.mHandler.obtainMessage(5, bsString).sendToTarget();
+        this.mHandler.obtainMessage(7, totalMatch).sendToTarget();
+    }
+
+    private final ArrayList<Byte> readBufferArray = new ArrayList<>();
+    private byte[] headBs = null, endBs = null;
+    private int headSize = 0;
+
+    private void prepareBeginEndByte() {
+        headBs = null;
+        endBs = null;
+        validBegin = false;
+        headSize = 0;
+        readBufferArray.clear();
+        if (this.editTextHexHead.getText().toString().length() > 0) {
+            headBs = BaseEncoding.base16().decode(editTextHexHead.getText().toString());
+            headSize = headBs.length;
+            Log.d(TAG, "开头字节：" + BaseEncoding.base16().encode(headBs));
+        }
+        if (this.editTextHexEnd.getText().toString().length() > 0) {
+            endBs = BaseEncoding.base16().decode(editTextHexEnd.getText().toString());
+            Log.d(TAG, "结尾字节：" + BaseEncoding.base16().encode(endBs));
+        }
+    }
+
+    boolean validBegin = false;
+
+    private void checkByBeginEnd(byte[] readBs) {
+        if (headBs == null && endBs == null) return;
+        if (headBs == null) validBegin = true;
+        byte[] tmpBs;
+        for (byte b : readBs) {
+            readBufferArray.add(b);
+            //需要开头但还没有开头
+            if (!validBegin && headBs != null && readBufferArray.size() == headSize) {
+                validBegin = true;
+                for (int i = 0; i < headSize; i++) {
+                    if (readBufferArray.get(i) != headBs[i]) {
+                        readBufferArray.remove(0);
+                        validBegin = false;
+                        break;
                     }
-                } else {
-                    matchIndex = -1;
+                }
+                if (!validBegin) continue;
+            }
+            if (validBegin) {//开头未结尾
+                if (readBufferArray.size() > headSize) {//开头并多出，开始查找结尾
+                    tmpBs = ArrayUtils.toPrimitive(readBufferArray.toArray(new Byte[0]));
+                    if (endBs != null) {
+                        //Log.d(TAG, "缓冲字节：" + BaseEncoding.base16().encode(tmpBs));
+                        if (endWithBs(tmpBs, endBs)) {
+                            Log.d(TAG, "结尾，完帧" + BaseEncoding.base16().encode(tmpBs));
+                            readBufferArray.clear();
+                            validBegin = false;
+                            onReceiveOnFrameBs(BaseEncoding.base16().encode(tmpBs));
+                        }
+                    } else if (headBs != null) {
+                        if (endWithBs(tmpBs, headBs)) {
+                            int len = readBufferArray.size();
+                            byte[] frameBs = new byte[len - headBs.length];
+                            System.arraycopy(tmpBs, 0, frameBs, 0, len - headBs.length);
+                            readBufferArray.clear();
+                            for (byte hb : headBs) {
+                                readBufferArray.add(hb);
+                            }
+                            Log.d(TAG, "又开头，完帧" + BaseEncoding.base16().encode(frameBs));
+                            validBegin = true;
+                            onReceiveOnFrameBs(BaseEncoding.base16().encode(frameBs));
+                        }
+                    }
                 }
             }
-        } else {
-            if (checkboxReceiveHex.isChecked()) receiveTxt = BaseEncoding.base16().encode(readBs);
-            else receiveTxt = new String(readBs);
         }
-        if (receiveTxt != null) {
-            //Log.d(TAG, "收到：" + receiveTxt);
-            this.mHandler.obtainMessage(5, receiveTxt).sendToTarget();
+    }
+
+    private boolean endWithBs(byte[] srcBs, byte[] endBs) {
+        int from = srcBs.length - endBs.length;
+        if (from < 0) return false;
+        for (int i = 0; i < endBs.length; i++) {
+            if (srcBs[i + from] != endBs[i]) return false;
         }
-        totalReceiveCount += readBs.length;
-        this.mHandler.obtainMessage(6, totalReceiveCount, totalMatch, null).sendToTarget();
+        return true;
+    }
+
+    private boolean compareBs(byte[] bs1, byte[] bs2) {
+        if (bs1 == null || bs2 == null || bs1.length == 0 || bs2.length == 0 || bs1.length != bs2.length) return false;
+        for (int i = 0; i < bs1.length; i++) {
+            if (bs1[i] != bs2[i]) return false;
+        }
+        return true;
     }
 
     private void parseSendBytes() {
@@ -323,10 +454,12 @@ public class ActivityMain extends Activity {
                 textViewReceiveMessage.append(String.valueOf(message.obj));
                 break;
             case 6:
-                textViewReceiveCount.setText(String.valueOf(message.arg1));
-                textViewReceiveCountMatch.setText(String.valueOf(message.arg2));
+                textViewReceiveCount.setText(String.valueOf(message.obj));
                 break;
             case 7:
+                textViewReceiveCountMatch.setText(String.valueOf(message.obj));
+                break;
+            case 8:
                 textViewReceiveMessage.setText("");
                 break;
             default:
