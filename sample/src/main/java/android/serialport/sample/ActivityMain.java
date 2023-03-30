@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
@@ -106,7 +107,10 @@ public class ActivityMain extends Activity {
                 }
 
             } else {
-                if (serialSample != null) serialSample.close();
+                if (serialSample != null) {
+                    if (writeThread != null) writeThread.interrupt();
+                    serialSample.close();
+                }
             }
         });
         ((Switch) this.findViewById(R.id.switchSend)).setOnCheckedChangeListener((compoundButton, b) -> {
@@ -138,6 +142,7 @@ public class ActivityMain extends Activity {
                             writeResp.callback(1, "写入失败：" + e.getMessage());
                             break;
                         }
+                        mHandler.obtainMessage(9, (i + 1), sendTimes).sendToTarget();
                     }
                     if (writeOk) writeResp.callback(0, "写入完成");
                 });
@@ -169,12 +174,21 @@ public class ActivityMain extends Activity {
                 }
             }
         });
+        this.checkboxReceiveHex.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                showReceiveHex = isChecked;
+            }
+        });
     }
+
+    private boolean showReceiveHex = false;
 
     @Override
     protected void onStart() {
         super.onStart();
         this.listSerialPort();
+        showReceiveHex = this.checkboxReceiveHex.isChecked();
     }
 
     private byte[] sendBytes = null;
@@ -196,7 +210,7 @@ public class ActivityMain extends Activity {
         Log.d(TAG, "收到字节：" + BaseEncoding.base16().encode(readBs));
         if (((RadioButton) this.radioGroupCheckReceive.getChildAt(0)).isChecked()) {
             String directBsString;
-            if (checkboxReceiveHex.isChecked()) directBsString = BaseEncoding.base16().encode(readBs);
+            if (showReceiveHex) directBsString = BaseEncoding.base16().encode(readBs);
             else directBsString = new String(readBs);
             onReceiveOnFrameBs(directBsString);
         } else if (((RadioButton) this.radioGroupCheckReceive.getChildAt(1)).isChecked()) {
@@ -285,7 +299,8 @@ public class ActivityMain extends Activity {
                             Log.d(TAG, "结尾，完帧" + BaseEncoding.base16().encode(tmpBs));
                             readBufferArray.clear();
                             validBegin = false;
-                            onReceiveOnFrameBs(BaseEncoding.base16().encode(tmpBs));
+                            if (showReceiveHex) onReceiveOnFrameBs(BaseEncoding.base16().encode(tmpBs));
+                            else onReceiveOnFrameBs(new String(tmpBs));
                         }
                     } else if (headBs != null) {
                         if (endWithBs(tmpBs, headBs)) {
@@ -461,6 +476,9 @@ public class ActivityMain extends Activity {
                 break;
             case 8:
                 textViewReceiveMessage.setText("");
+                break;
+            case 9:
+                ((TextView) findViewById(R.id.textViewSendShow)).setText(String.valueOf(message.arg1));
                 break;
             default:
                 break;

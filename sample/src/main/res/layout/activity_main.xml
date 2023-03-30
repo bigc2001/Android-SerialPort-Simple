@@ -121,8 +121,16 @@
         android:layout_height="wrap_content"
         android:text="010203A1B2C30D0A"
         app:layout_constraintLeft_toLeftOf="@id/textViewSendMsg"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/textViewSendShow"
         app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
+
+    <TextView
+        android:id="@+id/textViewSendShow"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/editTextSendMsg"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/editTextSendMsg" />
 
     <TextView
         android:id="@+id/textViewReceive"
