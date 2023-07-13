@@ -19,6 +19,7 @@ package android.serialport.sample;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -36,6 +37,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.io.BaseEncoding;
 
@@ -122,6 +124,10 @@ public class ActivityMain extends Activity {
                 final int sendTimes = Integer.parseInt(editTextSendTimes.getText().toString());
                 final int delay = Integer.parseInt(editTextDelay.getText().toString());
                 byte[] rb = getWriteBytes();
+                if (rb == null) {
+                    Toast.makeText(ActivityMain.this, "输入的内容不正确", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Log.d(TAG, "开始发送数据，次数：" + sendTimes + " 间隔：" + delay + " 字节：" + BaseEncoding.base16().encode(rb));
                 writeThread = new Thread(() -> {
                     boolean writeOk = true;
@@ -148,8 +154,10 @@ public class ActivityMain extends Activity {
                 });
                 writeThread.start();
             } else {
-                writeThread.interrupt();
-                writeThread = null;
+                if (writeThread != null) {
+                    writeThread.interrupt();
+                    writeThread = null;
+                }
             }
         });
         this.imageButtonClear.setOnClickListener(new View.OnClickListener() {
@@ -259,6 +267,7 @@ public class ActivityMain extends Activity {
         validBegin = false;
         headSize = 0;
         readBufferArray.clear();
+        readBufferArray.trimToSize();
         if (this.editTextHexHead.getText().toString().length() > 0) {
             headBs = BaseEncoding.base16().decode(editTextHexHead.getText().toString());
             headSize = headBs.length;
@@ -347,14 +356,20 @@ public class ActivityMain extends Activity {
 
     private final INormalResponse writeResp = (code, message) -> {
         Log.d(TAG, code + "=============" + message);
-        this.mHandler.obtainMessage(4, null).sendToTarget();
-
+        //this.mHandler.obtainMessage(4, null).sendToTarget();
+        this.mHandler.sendMessageDelayed(this.mHandler.obtainMessage(4, null), 200);
     };
 
     private byte[] getWriteBytes() {
-        String input = editTextSendMsg.getText().toString();
+        String input = editTextSendMsg.getText().toString().toUpperCase();
         if (checkboxHex.isChecked()) {
-            return BaseEncoding.base16().decode(input);
+            byte[] rsBs;
+            try {
+                rsBs = BaseEncoding.base16().decode(input);
+            } catch (Exception e) {
+                return null;
+            }
+            return rsBs;
         } else return input.getBytes(StandardCharsets.UTF_8);
     }
 

@@ -67,7 +67,7 @@
         android:id="@+id/editTextDelay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1000"
+        android:text="500"
         app:layout_constraintLeft_toRightOf="@id/textViewSendMsg"
         app:layout_constraintTop_toBottomOf="@id/editBaudRate" />
 
@@ -83,7 +83,7 @@
         android:id="@+id/editTextSendTimes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="10"
+        android:text="1"
         app:layout_constraintLeft_toRightOf="@id/textViewRepeat"
         app:layout_constraintTop_toTopOf="@id/editTextDelay" />
 
@@ -92,16 +92,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="循环发送"
-        android:textOff="停"
+        android:textOff="完"
         android:textOn="发"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@id/editTextDelay"
+        app:layout_constraintBottom_toBottomOf="@id/editTextDelay"
         app:showText="true" />
 
     <TextView
+        android:id="@+id/textViewSend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="发送内容"
+        android:text="发送"
         app:layout_constraintBottom_toBottomOf="@id/checkboxHex"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/checkboxHex" />
@@ -119,10 +121,10 @@
         android:id="@+id/editTextSendMsg"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="010203A1B2C30D0A"
-        app:layout_constraintLeft_toLeftOf="@id/textViewSendMsg"
-        app:layout_constraintRight_toLeftOf="@id/textViewSendShow"
-        app:layout_constraintTop_toBottomOf="@id/checkboxHex" />
+        android:text="01A10D0A"
+        app:layout_constraintLeft_toRightOf="@id/textViewSend"
+        app:layout_constraintRight_toLeftOf="@id/checkboxHex"
+        app:layout_constraintTop_toBottomOf="@id/editTextDelay"/>
 
     <TextView
         android:id="@+id/textViewSendShow"
@@ -199,7 +201,7 @@
             android:id="@+id/radioBeginEnd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="按首尾字节:" />
+            android:text="按首尾:" />
     </RadioGroup>
 
 
